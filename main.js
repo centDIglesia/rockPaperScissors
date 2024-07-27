@@ -1,50 +1,48 @@
 import "./style.css";
 
-const score = {
+let score = {
   win: 0,
   loses: 0,
   tie: 0,
 };
 
-const moves = {
-  rock: 1,
-  paper: 2,
-  scissors: 3,
-};
+let computerMove;
+const moves = ["rock", "paper", "scissors"];
 
-function RenderGame() {
+function playWithKeyDown() {
+  document.body.addEventListener("keydown", (event) => {
+    if (event.key === "r") {
+      renderGameUi("rock");
+    } else if (event.key === "p") {
+      renderGameUi("paper");
+    } else if (event.key === "s") {
+      renderGameUi("scissors");
+    }
+  });
+}
+
+function getPlayerMove() {
   document.querySelectorAll(".btn").forEach((move) => {
     move.addEventListener("click", () => {
-      const resultHTML = document.querySelector(".game__result");
-      const scoreHTML = document.querySelector(".game__details");
-      const playerMoveHTML = document.querySelector(".game__playermove");
       const dataInfo = move.getAttribute("data-move");
-
-      const result = playGame(dataInfo);
-
-      resultHTML.innerHTML = `${result}`;
-      playerMoveHTML.innerHTML = `You: ${dataInfo} - Computer: ${getMoveName(computerMove)}`;
-
-      scoreHTML.innerHTML = `Win: ${score.win} | Loses: ${score.loses} | Tie: ${score.tie}`;
+      renderGameUi(dataInfo);
     });
   });
 }
 
-let computerMove;
+function getGameResult(playerMove) {
+  computerMove = moves[Math.floor(Math.random() * moves.length)];
 
-function playGame(playerMove) {
-  computerMove = Math.floor(Math.random() * 3) + 1;
-
-  const playerMoveValue = moves[playerMove.toLowerCase()];
+  const playerMoveValue = playerMove;
 
   let result;
   if (playerMoveValue === computerMove) {
     result = "It's a tie!";
     score.tie++;
   } else if (
-    (playerMoveValue === 1 && computerMove === 3) || // Rock beats Scissors
-    (playerMoveValue === 2 && computerMove === 1) || // Paper beats Rock
-    (playerMoveValue === 3 && computerMove === 2) // Scissors beat Paper
+    (playerMoveValue === "rock" && computerMove === "scissors") || // Rock beats Scissors
+    (playerMoveValue === "paper" && computerMove === "rock") || // Paper beats Rock
+    (playerMoveValue === "scissors" && computerMove === "paper") // Scissors beat Paper
   ) {
     result = "You win!";
     score.win++;
@@ -56,8 +54,70 @@ function playGame(playerMove) {
   return result;
 }
 
-function getMoveName(moveValue) {
-  return Object.keys(moves).find(key => moves[key] === moveValue);
+
+
+
+function renderGameUi(playerMove) {
+  const resultHTML = document.querySelector(".game__result");
+  const scoreHTML = document.querySelector(".game__details");
+  const playerMoveHTML = document.querySelector(".game__playermove");
+
+  const result = getGameResult(playerMove);
+
+  resultHTML.innerHTML = `${result}`;
+  playerMoveHTML.innerHTML = `You: ${playerMove} - Computer: ${computerMove}`;
+
+  scoreHTML.innerHTML = `Win: ${score.win} | Loses: ${score.loses} | Tie: ${score.tie}`;
 }
 
-RenderGame();
+
+
+
+function resetScore() {
+  const resetBtn = document.querySelector(".game__reset-btn");
+
+  resetBtn.addEventListener("click", () => {
+    // Reset the score values
+    score.win = 0;
+    score.loses = 0;
+    score.tie = 0;
+
+    const scoreHTML = document.querySelector(".game__details");
+    scoreHTML.innerHTML = `Win: ${score.win} | Loses: ${score.loses} | Tie: ${score.tie}`;
+
+    document.querySelector(".game__result").innerHTML = "Choose move";
+    document.querySelector(".game__playermove").innerHTML = "--";
+  });
+}
+
+let intervalId;
+let isAutoPlaying = false;
+
+function autoPlay() {
+  const autoPlayBtn = document.querySelector(".game__auto-btn");
+  document.querySelector(".game__auto-btn").addEventListener("click", () => {
+    if (!isAutoPlaying) {
+      intervalId = setInterval(() => {
+        const playerMove = moves[Math.floor(Math.random() * moves.length)];
+        renderGameUi(playerMove);
+      }, 1000);
+
+      isAutoPlaying = true;
+      autoPlayBtn.innerText = "Stop Auto Play";
+    } else {
+      clearInterval(intervalId);
+      isAutoPlaying = false;
+
+      autoPlayBtn.innerText = "Auto Play";
+    }
+
+
+  });
+}
+
+
+
+playWithKeyDown();
+resetScore();
+getPlayerMove();
+autoPlay();
